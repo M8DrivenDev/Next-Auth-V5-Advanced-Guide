@@ -10,6 +10,7 @@ import { AuthError } from "next-auth";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import { generateVerificationToken } from "@/lib/tokens";
 import { sendVerificationEmail } from "@/lib/mail";
+import { getVerificationTokenByToken } from "@/data/verficationToken";
 
 export const login = async (values: z.infer<typeof LoginSchema>) => {
   const validatedFields = LoginSchema.safeParse(values);
@@ -81,3 +82,41 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
   await sendVerificationEmail(verificationToken.email, verificationToken.token);
   return { success: "Confirmation email sent!" };
 };
+
+export const newVerification = async (token: string) => {
+  const existingToken = await getVerificationTokenByToken(token)
+
+  if (!existingToken) {
+    return {error: "Token dose not exist!"}
+  }
+
+  const hasExpired = new Date(existingToken.expires) < new Date()
+
+  if (hasExpired) {
+    return {error: "Token has expired"}
+  }
+
+  const existingUser = await getUserByEmail(existingToken.email) 
+
+  if (!existingUser) {
+    return {error: "Email does not exist!"}
+  }
+
+  await db.user.update({
+    where: {
+      id: existingUser.id
+    },
+    data: {
+      emailVerified: new Date(),
+      email: existingToken.email
+    }
+  })
+
+  await db.verificationToken.delete({
+    where : {
+      id: existingToken.id
+    }
+  })
+
+  return {success: 'Email Verified'}
+}
