@@ -1,6 +1,6 @@
 "use server";
 
-import { LoginSchema, RegisterSchema } from "@/schemas";
+import { LoginSchema, RegisterSchema, ResetSchema } from "@/schemas";
 import * as z from "zod";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
@@ -8,8 +8,8 @@ import { getUserByEmail } from "@/data/user";
 import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
-import { generateVerificationToken } from "@/lib/tokens";
-import { sendVerificationEmail } from "@/lib/mail";
+import { generatePasswordResetToken, generateVerificationToken } from "@/lib/tokens";
+import { sendPasswordResetEmail, sendVerificationEmail } from "@/lib/mail";
 import { getVerificationTokenByToken } from "@/data/verficationToken";
 
 export const login = async (values: z.infer<typeof LoginSchema>) => {
@@ -84,39 +84,60 @@ export const register = async (values: z.infer<typeof RegisterSchema>) => {
 };
 
 export const newVerification = async (token: string) => {
-  const existingToken = await getVerificationTokenByToken(token)
+  const existingToken = await getVerificationTokenByToken(token);
 
   if (!existingToken) {
-    return {error: "Token dose not exist!"}
+    return { error: "Token dose not exist!" };
   }
 
-  const hasExpired = new Date(existingToken.expires) < new Date()
+  const hasExpired = new Date(existingToken.expires) < new Date();
 
   if (hasExpired) {
-    return {error: "Token has expired"}
+    return { error: "Token has expired" };
   }
 
-  const existingUser = await getUserByEmail(existingToken.email) 
+  const existingUser = await getUserByEmail(existingToken.email);
 
   if (!existingUser) {
-    return {error: "Email does not exist!"}
+    return { error: "Email does not exist!" };
   }
 
   await db.user.update({
     where: {
-      id: existingUser.id
+      id: existingUser.id,
     },
     data: {
       emailVerified: new Date(),
-      email: existingToken.email
-    }
-  })
+      email: existingToken.email,
+    },
+  });
 
   await db.verificationToken.delete({
-    where : {
-      id: existingToken.id
-    }
-  })
+    where: {
+      id: existingToken.id,
+    },
+  });
 
-  return {success: 'Email Verified'}
-}
+  return { success: "Email Verified" };
+};
+
+export const resetPassword = async (values: z.infer<typeof ResetSchema>) => {
+  const validatedFields = ResetSchema.safeParse(values);
+
+  if (!validatedFields.success) {
+    return { error: "Invalid email!" };
+  }
+
+  const { email } = validatedFields.data;
+
+  const existingUser = await getUserByEmail(email);
+
+  if (!existingUser) {
+    return {error: "Email not found"}
+  }
+
+  const passwordResetToken = await generatePasswordResetToken(email)
+  await sendPasswordResetEmail(passwordResetToken.email, passwordResetToken.token)
+
+  return {success: "Email sent"}
+};
