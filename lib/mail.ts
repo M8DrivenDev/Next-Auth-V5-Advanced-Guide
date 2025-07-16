@@ -10,8 +10,8 @@ export const sendTwoFactorTokenEmail = async (
   await resend.emails.send({
     from: "onboarding@resend.dev",
     to: email,
-    subject: "Confirm your email",
-    html: `<h3>${token}</h3>`
+    subject: "Two Factor Authentication Code",
+    html: `<h3>You'r code is: ${token}</h3>`
   })
 }
 

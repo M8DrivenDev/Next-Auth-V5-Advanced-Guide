@@ -76,7 +76,7 @@ const LoginForm = () => {
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Code</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
