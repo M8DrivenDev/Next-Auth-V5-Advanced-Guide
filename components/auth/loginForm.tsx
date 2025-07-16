@@ -52,12 +52,10 @@ const LoginForm = () => {
             setSuccess(data.success);
           }
           if (data?.twoFactor) {
+            setError("");
             setShowTwoFactor(true);
           }
         })
-        .catch(() => {
-          setError("Something went wrong");
-        });
     });
   };
   return (

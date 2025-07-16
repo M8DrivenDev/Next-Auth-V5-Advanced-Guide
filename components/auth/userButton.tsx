@@ -15,7 +15,6 @@ import { IoMdExit } from "react-icons/io";
 
 const UserButton = () => {
   const user = useCurrentUser();
-  console.log(user?.image)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>

@@ -29,8 +29,8 @@ import { getTwoFactorTokenByEmail } from "@/data/twoFactorToken";
 import { getTwoFactorConfirmationByUserId } from "@/data/twoFactorConfirmation";
 
 export const logout = async () => {
-  await signOut()
-}
+  await signOut();
+};
 
 export const login = async (values: z.infer<typeof LoginSchema>) => {
   const validatedFields = LoginSchema.safeParse(values);
@@ -57,6 +57,10 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
 
     return { success: "Confirmation email sent!" };
   }
+
+  const passwordValid = await bcrypt.compare(password, existingUser.password);
+  if (!passwordValid) return { error: "Invalid credentials" };
+
   if (existingUser.isTwoFactorEnabled && existingUser.email) {
     if (code) {
       const twoFactorToken = await getTwoFactorTokenByEmail(existingUser.email);
@@ -85,9 +89,9 @@ export const login = async (values: z.infer<typeof LoginSchema>) => {
       }
       await db.twoFactorConfirmation.create({
         data: {
-          userId: existingUser.id
-        }
-      })
+          userId: existingUser.id,
+        },
+      });
     } else {
       const twoFactorToken = await generateTwoFactorToken(existingUser.email);
       await sendTwoFactorTokenEmail(twoFactorToken.email, twoFactorToken.token);
