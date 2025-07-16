@@ -10,7 +10,7 @@ import * as z from "zod";
 import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { getUserByEmail } from "@/data/user";
-import { signIn } from "@/auth";
+import { signIn, signOut } from "@/auth";
 import { AuthError } from "next-auth";
 import { DEFAULT_LOGIN_REDIRECT } from "@/routes";
 import {
@@ -27,6 +27,10 @@ import { getVerificationTokenByToken } from "@/data/verificationToken";
 import { getPasswordResetTokenByToken } from "@/data/passwordResetToken";
 import { getTwoFactorTokenByEmail } from "@/data/twoFactorToken";
 import { getTwoFactorConfirmationByUserId } from "@/data/twoFactorConfirmation";
+
+export const logout = async () => {
+  await signOut()
+}
 
 export const login = async (values: z.infer<typeof LoginSchema>) => {
   const validatedFields = LoginSchema.safeParse(values);
