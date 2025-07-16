@@ -38,9 +38,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         await db.twoFactorConfirmation.delete({
           where: {
-            id: twoFactorConfirmation.id
-          }
-        })
+            id: twoFactorConfirmation.id,
+          },
+        });
       }
       return true;
     },
@@ -51,9 +51,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token.role && session.user) {
         session.user.role = token.role as UserRole;
       }
+      if (session.user) {
+        session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean;
+      }
       return session;
     },
     async jwt({ token }) {
+      if (!token.sub) return token;
+      const existingUser = await getUserById(token.sub);
+      if (!existingUser) return token;
+      token.role = existingUser.role;
+      token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
       return token;
     },
   },
