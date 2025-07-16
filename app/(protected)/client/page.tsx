@@ -1,11 +1,12 @@
-import React from 'react'
+"use client";
+import { UserInfo } from "@/components/userInfo";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
+import React from "react";
 
 const ClientPage = () => {
-  return (
-    <div>
-      
-    </div>
-  )
-}
+  const user = useCurrentUser();
 
-export default ClientPage
+  return <UserInfo label="👤 Client Component" user={user} />;
+};
+
+export default ClientPage;
