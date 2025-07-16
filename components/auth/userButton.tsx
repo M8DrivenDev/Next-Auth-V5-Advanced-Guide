@@ -15,11 +15,12 @@ import { IoMdExit } from "react-icons/io";
 
 const UserButton = () => {
   const user = useCurrentUser();
+  console.log(user?.image)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger>
         <Avatar className="cursor-pointer">
-          <AvatarImage src={user?.image || ""} />
+          <AvatarImage src={user?.image || ""} alt="user" referrerPolicy="no-referrer"/>
           <AvatarFallback className="bg-purple-900">
             <FaUser className="text-white" />
           </AvatarFallback>
